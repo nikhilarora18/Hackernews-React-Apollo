@@ -10,6 +10,7 @@
     "@types/node": "12.0.0",
     "@types/react": "16.9.0",
     "@types/react-dom": "16.9.0",
+    "apollo": "2.27.4",
     "apollo-boost": "0.4.7",
     "graphql": "15.0.0",
     "node-sass": "4.14.1",
@@ -18,13 +19,16 @@
     "react-dom": "16.13.1",
     "react-scripts": "3.4.1",
     "tachyons": "4.12.0",
+    "tachyons-sass": "4.9.5",
     "typescript": "3.7.2"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "gql-codegen": "apollo client:codegen --target=typescript --localSchemaFile=./schema.json --globalTypesFile=./src/globalTypes.ts --config=./apollo.config.js --passthroughCustomScalars",
+    "gql-clean": "git diff-index --quiet HEAD -- && git clean -dfx src || echo 'Changes found, stash them before running.'"
   },
   "eslintConfig": {
     "extends": "react-app"
