@@ -1,6 +1,7 @@
 import React, {useState} from "react";
 import {gql} from "apollo-boost";
 import {Mutation} from "react-apollo";
+import {useHistory} from "react-router";
 
 const POST_MUTATION = gql`
   mutation PostMutation($description: String!, $url: String!) {
@@ -16,6 +17,8 @@ const POST_MUTATION = gql`
 const CreateLink: React.FC = () => {
   const [description, setDescription] = useState();
   const [url, setUrl] = useState();
+
+  const history = useHistory();
 
   return (
     <div>
@@ -35,7 +38,11 @@ const CreateLink: React.FC = () => {
           placeholder="The URL for the link"
         />
       </div>
-      <Mutation mutation={POST_MUTATION} variables={{ description, url }}>
+      <Mutation
+        mutation={POST_MUTATION}
+        variables={{description, url}}
+        onCompleted={() => history.push("/")}
+      >
         {(postMutation: any) => <button onClick={postMutation}>Submit</button>}
       </Mutation>
     </div>
