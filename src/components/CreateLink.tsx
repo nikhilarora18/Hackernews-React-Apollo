@@ -43,7 +43,7 @@ const CreateLink: React.FC = () => {
         variables={{description, url}}
         onCompleted={() => history.push("/")}
       >
-        {(postMutation: any) => <button onClick={postMutation}>Submit</button>}
+        {(postMutation: any) => <button className="button" onClick={postMutation}>Submit</button>}
       </Mutation>
     </div>
   )

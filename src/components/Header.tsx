@@ -1,7 +1,11 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import {Link, useHistory} from "react-router-dom";
+import {AUTH_TOKEN} from "../constants";
 
 const Header:React.FC = () => {
+  const authToken = localStorage.getItem(AUTH_TOKEN);
+  const history = useHistory();
+
   return (
     <div className="flex pa1 justify-between nowrap orange">
       <div className="flex flex-fixed black">
@@ -10,9 +14,28 @@ const Header:React.FC = () => {
           new
         </Link>
         <div className="ml1">|</div>
-        <Link to="/create" className="ml1 no-underline black">
-          submit
-        </Link>
+        {authToken &&(
+          <Link to="/create" className="ml1 no-underline black">
+            submit
+          </Link>
+        )}
+      </div>
+      <div className="flex flex-fixed">
+        {authToken ? (
+          <div
+            className="ml1 pointer black"
+            onClick={() => {
+              localStorage.removeItem(AUTH_TOKEN)
+              history.push(`/`)
+            }}
+          >
+            logout
+          </div>
+        ) : (
+          <Link to="/login" className="ml1 no-underline black">
+            login
+          </Link>
+        )}
       </div>
     </div>
   );
