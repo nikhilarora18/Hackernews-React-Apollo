@@ -3,7 +3,7 @@ import Link, {LinkModel} from "./Link";
 import {gql} from "apollo-boost";
 import {Query} from "react-apollo";
 
-const FEED_QUERY = gql`
+export const FEED_QUERY = gql`
   {
     feed {
       links {
@@ -11,12 +11,32 @@ const FEED_QUERY = gql`
         createdAt
         url
         description
+        postedBy {
+          id
+          name
+        }
+        votes {
+          id
+          user {
+            id
+          }
+        }
       }
     }
   }
 `
 
 const LinkList: React.FC = () => {
+
+  const _updateCacheAfterVote = (store: any, createVote: any, linkId: string) => {
+    const data = store.readQuery({ query: FEED_QUERY })
+
+    const votedLink = data.feed.links.find((link: LinkModel) => link.id === linkId)
+    votedLink.votes = createVote.link.votes
+
+    store.writeQuery({ query: FEED_QUERY, data })
+  }
+
   return (
     <Query<{
       feed: {
@@ -30,7 +50,14 @@ const LinkList: React.FC = () => {
 
           return (
             <div>
-              {linksToRender.map(link => <Link key={link.id} link={link}/>)}
+              {linksToRender.map((link, index) =>
+                  <Link
+                    key={link.id}
+                    index={index}
+                    link={link}
+                    updateStoreAfterVote={_updateCacheAfterVote}
+                  />
+              )}
             </div>
           )
         }

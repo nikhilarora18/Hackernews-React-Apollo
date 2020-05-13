@@ -2,6 +2,7 @@ import React, {useState} from "react";
 import {gql} from "apollo-boost";
 import {Mutation} from "react-apollo";
 import {useHistory} from "react-router";
+import {FEED_QUERY} from "./LinkList";
 
 const POST_MUTATION = gql`
   mutation PostMutation($description: String!, $url: String!) {
@@ -42,6 +43,14 @@ const CreateLink: React.FC = () => {
         mutation={POST_MUTATION}
         variables={{description, url}}
         onCompleted={() => history.push("/")}
+        update={(store: any, { data: { post } }: any) => {
+          const data = store.readQuery({ query: FEED_QUERY })
+          data.feed.links.unshift(post)
+          store.writeQuery({
+            query: FEED_QUERY,
+            data
+          })
+        }}
       >
         {(postMutation: any) => <button className="button" onClick={postMutation}>Submit</button>}
       </Mutation>
