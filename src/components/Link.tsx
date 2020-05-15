@@ -16,7 +16,7 @@ export interface LinkModel {
 interface LinkProps {
   link: LinkModel;
   index: number;
-  updateStoreAfterVote: (store: any, vote: any, id: string) => void;
+  updateStoreAfterVote?: (store: any, vote: any, id: string) => void;
 }
 
 const VOTE_MUTATION = gql`
@@ -45,7 +45,7 @@ const Link:React.FC<LinkProps> = ({link, index, updateStoreAfterVote}) => {
     <div className="flex mt2 items-start">
       <div className="flex items-center">
         <span className="gray">{index + 1}.</span>
-        {authToken && (
+        {authToken && updateStoreAfterVote && (
           <Mutation
             mutation={VOTE_MUTATION}
             variables={{ linkId: link.id }}

@@ -14,10 +14,16 @@ const Header:React.FC = () => {
           new
         </Link>
         <div className="ml1">|</div>
-        {authToken &&(
-          <Link to="/create" className="ml1 no-underline black">
-            submit
-          </Link>
+        <Link to="/search" className="ml1 no-underline black">
+          search
+        </Link>
+        {authToken && (
+          <div className="flex">
+            <div className="ml1">|</div>
+            <Link to="/create" className="ml1 no-underline black">
+              submit
+            </Link>
+          </div>
         )}
       </div>
       <div className="flex flex-fixed">
