@@ -2,10 +2,12 @@ import React from "react";
 import Link, {LinkModel} from "./Link";
 import {gql} from "apollo-boost";
 import {Query} from "react-apollo";
+import {useHistory, useLocation, useParams} from "react-router";
+import {LINKS_PER_PAGE} from "../constants";
 
 export const FEED_QUERY = gql`
-  {
-    feed {
+  query FeedQuery($first: Int, $skip: Int, $orderBy: LinkOrderByInput) {
+    feed(first: $first, skip: $skip, orderBy: $orderBy) {
       links {
         id
         createdAt
@@ -22,6 +24,7 @@ export const FEED_QUERY = gql`
           }
         }
       }
+      count
     }
   }
 `
@@ -76,8 +79,22 @@ const NEW_VOTES_SUBSCRIPTION = gql`
 
 const LinkList: React.FC = () => {
 
+  const location = useLocation();
+  const params = useParams();
+  const history = useHistory();
+
+  const page = parseInt((params as any)["page"], 10);
+
   const _updateCacheAfterVote = (store: any, createVote: any, linkId: string) => {
-    const data = store.readQuery({query: FEED_QUERY})
+    const isNewPage = location.pathname.includes('new');
+
+    const skip = isNewPage ? (page - 1) * LINKS_PER_PAGE : 0;
+    const first = isNewPage ? LINKS_PER_PAGE : 100;
+    const orderBy = isNewPage ? 'createdAt_DESC' : null;
+    const data = store.readQuery({
+      query: FEED_QUERY,
+      variables: { first, skip, orderBy }
+    });
 
     const votedLink = data.feed.links.find((link: LinkModel) => link.id === linkId)
     votedLink.votes = createVote.link.votes
@@ -111,30 +128,88 @@ const LinkList: React.FC = () => {
     })
   }
 
+  const _getQueryVariables = () => {
+    const isNewPage = location.pathname.includes('new');
+    const skip = isNewPage ? (page - 1) * LINKS_PER_PAGE : 0;
+    const first = isNewPage ? LINKS_PER_PAGE : 100;
+    const orderBy = isNewPage ? 'createdAt_DESC' : null;
+    return { first, skip, orderBy };
+  }
+
+  const _getLinksToRender = (data: {
+    feed: {
+      links: LinkModel[]
+    }
+  }) => {
+
+    if (location.pathname.includes('new')) {
+      return data.feed.links;
+    }
+    const rankedLinks = data.feed.links.slice();
+    rankedLinks.sort((l1, l2) => l2.votes.length - l1.votes.length);
+    return rankedLinks;
+  }
+
+  const _nextPage = (data: {
+    feed: {
+      links: LinkModel[]
+      count: number
+    }
+  }) => {
+    if (page <= data.feed.count / LINKS_PER_PAGE) {
+      const nextPage = page + 1;
+      history.push(`/new/${nextPage}`);
+    }
+  }
+
+  const _previousPage = () => {
+    if (page > 1) {
+      const previousPage = page - 1;
+      history.push(`/new/${previousPage}`);
+    }
+  }
+
   return (
     <Query<{
       feed: {
         links: LinkModel[]
+        count: number
       }
-    }> query={FEED_QUERY}>
+    }> query={FEED_QUERY} variables={_getQueryVariables()}>
       {({loading, error, data, subscribeToMore}) => {
         if (loading) return <div>Fetching</div>
         if (error) return <div>Error</div>
-        const linksToRender = data && data.feed.links
 
         _subscribeToNewLinks(subscribeToMore);
         _subscribeToNewVotes(subscribeToMore);
 
+        const linksToRender = data && _getLinksToRender(data);
+        const isNewPage = location.pathname.includes('new')
+        const pageIndex = (params as any)["page"]
+          ? ((params as any)["page"] - 1) * LINKS_PER_PAGE
+          : 0
         return (
           <div>
             {linksToRender?.map((link, index) =>
                 <Link
                   key={link.id}
-                  index={index}
+                  index={index + pageIndex}
                     link={link}
                     updateStoreAfterVote={_updateCacheAfterVote}
                   />
               )}
+            {isNewPage && (
+              <div className="flex ml4 mv3 gray">
+                {page > 1 && <div className="pointer mr2" onClick={_previousPage}>
+                  Previous
+                </div>}
+                {data && page <= data.feed.count / LINKS_PER_PAGE && (
+                  <div className="pointer" onClick={() => data && _nextPage(data)}>
+                    Next
+                  </div>
+                )}
+              </div>
+            )}
             </div>
           )
       }}
